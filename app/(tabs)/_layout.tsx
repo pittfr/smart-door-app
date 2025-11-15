@@ -51,6 +51,7 @@ export default function TabLayout() {
             key={colorScheme}
             screenOptions={{
                 tabBarShowLabel: false,
+                headerShown: false,
                 tabBarItemStyle: {
                     width: "100%",
                     height: "100%",
