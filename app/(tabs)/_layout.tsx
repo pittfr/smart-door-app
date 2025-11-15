@@ -1,24 +1,42 @@
+import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Text, View } from "react-native";
+import { useAppColorScheme } from "../../hooks/use-theme";
 import "../globals.css";
 
-const TabIcon = ({ focused, icon, title }: any) => {
+const TabIcon = ({ focused, icon, title, isLight }: any) => {
     if (focused) {
         return (
-            <View className="flex w-full flex-1 min-w-[65px] min-h-16 mt-4 justify-center items-center overflow-hidden bg-[#1E3A8A]/10 rounded-xl">
-                <Ionicons name={icon} size={20} color={"#1E3A8A"} />
-                <Text className="text-sm text-[#1E3A8A] font-semibold">
+            <View
+                className={
+                    "flex flex-col w-full flex-1 min-w-[65px] min-h-16 mt-4 justify-center items-center overflow-hidden bg-light-primary/10 dark:bg-dark-secondary/20 rounded-xl transition-all duration-200"
+                }
+            >
+                <Ionicons
+                    name={icon}
+                    size={20}
+                    color={
+                        isLight
+                            ? COLORS.light.primary.base
+                            : COLORS.dark.secondary.base
+                    }
+                />
+                <Text className="text-sm text-light-primary dark:text-dark-secondary font-semibold">
                     {title}
                 </Text>
             </View>
         );
     } else {
         return (
-            <View className="flex w-full flex-1 min-w-[112px] min-h-16 mt-4 justify-center items-center overflow-hidden">
-                <Ionicons name={icon} size={20} color={"#717182"} />
-                <Text className="text-sm text-[#717182] font-semibold">
+            <View className="flex flex-col w-full flex-1 min-w-[65px] min-h-16 mt-4 justify-center items-center overflow-hidden rounded-xl">
+                <Ionicons
+                    name={icon}
+                    size={20}
+                    color={COLORS[isLight ? "light" : "dark"].muted.foreground}
+                />
+                <Text className="text-sm text-light-muted-foreground dark:text-dark-muted-foreground font-semibold">
                     {title}
                 </Text>
             </View>
@@ -27,8 +45,10 @@ const TabIcon = ({ focused, icon, title }: any) => {
 };
 
 export default function TabLayout() {
+    const { colorScheme, isLight } = useAppColorScheme();
     return (
         <Tabs
+            key={colorScheme}
             screenOptions={{
                 tabBarShowLabel: false,
                 tabBarItemStyle: {
@@ -38,12 +58,15 @@ export default function TabLayout() {
                     alignItems: "center",
                 },
                 tabBarStyle: {
-                    backgroundColor: "#fff",
+                    backgroundColor:
+                        COLORS[isLight ? "light" : "dark"].card.base,
                     height: 70,
                     paddingTop: 10,
                     paddingHorizontal: 10,
                     position: "absolute",
                     overflow: "hidden",
+                    borderTopColor: COLORS[isLight ? "light" : "dark"].border,
+                    borderTopWidth: 1,
                 },
             }}
         >
@@ -56,6 +79,7 @@ export default function TabLayout() {
                             focused={focused}
                             icon="home-outline"
                             title="Home"
+                            isLight={isLight}
                         />
                     ),
                 }}
@@ -69,6 +93,7 @@ export default function TabLayout() {
                             focused={focused}
                             icon="people-outline"
                             title="Manage"
+                            isLight={isLight}
                         />
                     ),
                 }}
@@ -82,6 +107,7 @@ export default function TabLayout() {
                             focused={focused}
                             icon="camera-outline"
                             title="Camera"
+                            isLight={isLight}
                         />
                     ),
                 }}
@@ -95,6 +121,7 @@ export default function TabLayout() {
                             focused={focused}
                             icon="notifications-outline"
                             title="Alerts"
+                            isLight={isLight}
                         />
                     ),
                 }}
@@ -108,6 +135,7 @@ export default function TabLayout() {
                             focused={focused}
                             icon="settings-outline"
                             title="Settings"
+                            isLight={isLight}
                         />
                     ),
                 }}
