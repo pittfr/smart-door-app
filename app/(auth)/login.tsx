@@ -2,10 +2,18 @@ import IconTextInput from "@/components/IconTextInput";
 import SocialAuthButton from "@/components/SocialAuthButton";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
+import { useSSO } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ImageBackground, Text, TouchableOpacity, View } from "react-native";
+import {
+    ImageBackground,
+    Platform,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -14,6 +22,32 @@ export default function Login() {
     const bgImage = isLight
         ? require("../../assets/images/login-bg-light.png")
         : require("../../assets/images/login-bg-dark.png");
+
+    const { startSSOFlow } = useSSO();
+    const router = useRouter();
+
+    const handleOAuthSignIn = async (
+        provider: "google" | "facebook" | "apple"
+    ) => {
+        try {
+            const strategy = `oauth_${provider}` as any;
+
+            const { createdSessionId, setActive } = await startSSOFlow({
+                strategy,
+            });
+
+            if (setActive && createdSessionId) {
+                setActive({ session: createdSessionId });
+                router.replace("/(tabs)");
+            }
+        } catch (error) {
+            console.error("OAuth error:", error);
+        }
+    };
+
+    const handleGoogleSignIn = () => handleOAuthSignIn("google");
+    const handleFacebookSignIn = () => handleOAuthSignIn("facebook");
+    const handleAppleSignIn = () => handleOAuthSignIn("apple");
 
     return (
         <ImageBackground
@@ -116,16 +150,24 @@ export default function Login() {
                     </View>
                 </View>
                 {/* SIGN IN WITH SOCIAL ACCOUNTS */}
+
                 <View className="flex-row items-center justify-center gap-4">
                     <SocialAuthButton
                         provider="Google"
-                        onPress={() => console.log("google sign in pressed!")}
+                        onPress={handleGoogleSignIn}
                     />
                     <SocialAuthButton
-                        provider="Apple"
-                        onPress={() => console.log("apple sign in pressed!")}
+                        provider="Facebook"
+                        onPress={handleFacebookSignIn}
                     />
+                    {Platform.OS === "ios" && (
+                        <SocialAuthButton
+                            provider="Apple"
+                            onPress={handleAppleSignIn}
+                        />
+                    )}
                 </View>
+
                 {/* DON'T HAVE AN ACCOUNT? */}
                 <View className="pt-4 flex-row justify-center items-center">
                     <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mr-2">

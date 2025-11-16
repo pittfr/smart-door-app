@@ -2,7 +2,11 @@ import { COLORS } from "@/constants/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
+import {
+    SafeAreaProvider,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useAppColorScheme } from "../../hooks/use-theme";
 import "../globals.css";
 
@@ -46,101 +50,120 @@ const TabIcon = ({ focused, icon, title, isLight }: any) => {
 
 export default function TabLayout() {
     const { colorScheme, isLight } = useAppColorScheme();
+    const insets = useSafeAreaInsets();
     return (
-        <Tabs
-            key={colorScheme}
-            screenOptions={{
-                tabBarShowLabel: false,
-                headerShown: false,
-                tabBarItemStyle: {
-                    width: "100%",
-                    height: "100%",
-                    justifyContent: "center",
-                    alignItems: "center",
-                },
-                tabBarStyle: {
+        <SafeAreaProvider>
+            <View
+                style={{
+                    flex: 1,
                     backgroundColor:
-                        COLORS[isLight ? "light" : "dark"].card.base,
-                    height: 70,
-                    paddingTop: 10,
-                    paddingHorizontal: 10,
-                    position: "absolute",
-                    overflow: "hidden",
-                    borderTopColor: COLORS[isLight ? "light" : "dark"].border,
-                    borderTopWidth: 1,
-                },
-            }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: "Home",
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon
-                            focused={focused}
-                            icon="home-outline"
-                            title="Home"
-                            isLight={isLight}
-                        />
-                    ),
+                        COLORS[isLight ? "light" : "dark"].background,
                 }}
-            />
-            <Tabs.Screen
-                name="manage"
-                options={{
-                    title: "Manage",
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon
-                            focused={focused}
-                            icon="people-outline"
-                            title="Manage"
-                            isLight={isLight}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="camera"
-                options={{
-                    title: "Camera",
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon
-                            focused={focused}
-                            icon="camera-outline"
-                            title="Camera"
-                            isLight={isLight}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="alerts"
-                options={{
-                    title: "Alerts",
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon
-                            focused={focused}
-                            icon="notifications-outline"
-                            title="Alerts"
-                            isLight={isLight}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="settings"
-                options={{
-                    title: "Settings",
-                    tabBarIcon: ({ focused }) => (
-                        <TabIcon
-                            focused={focused}
-                            icon="settings-outline"
-                            title="Settings"
-                            isLight={isLight}
-                        />
-                    ),
-                }}
-            />
-        </Tabs>
+            >
+                <View
+                    style={{
+                        height: insets.top,
+                        backgroundColor:
+                            COLORS[isLight ? "light" : "dark"].background,
+                    }}
+                />
+                <Tabs
+                    key={colorScheme}
+                    screenOptions={{
+                        tabBarShowLabel: false,
+                        headerShown: false,
+                        tabBarItemStyle: {
+                            width: "100%",
+                            height: "100%",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        },
+                        tabBarStyle: {
+                            backgroundColor:
+                                COLORS[isLight ? "light" : "dark"].card.base,
+                            height: Platform.OS === "ios" ? 90 : 70,
+                            paddingTop: 10,
+                            paddingHorizontal: 10,
+                            position: "absolute",
+                            overflow: "hidden",
+                            borderTopColor:
+                                COLORS[isLight ? "light" : "dark"].border,
+                            borderTopWidth: 1,
+                        },
+                    }}
+                >
+                    <Tabs.Screen
+                        name="index"
+                        options={{
+                            title: "Home",
+                            tabBarIcon: ({ focused }) => (
+                                <TabIcon
+                                    focused={focused}
+                                    icon="home-outline"
+                                    title="Home"
+                                    isLight={isLight}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="manage"
+                        options={{
+                            title: "Manage",
+                            tabBarIcon: ({ focused }) => (
+                                <TabIcon
+                                    focused={focused}
+                                    icon="people-outline"
+                                    title="Manage"
+                                    isLight={isLight}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="camera"
+                        options={{
+                            title: "Camera",
+                            tabBarIcon: ({ focused }) => (
+                                <TabIcon
+                                    focused={focused}
+                                    icon="camera-outline"
+                                    title="Camera"
+                                    isLight={isLight}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="alerts"
+                        options={{
+                            title: "Alerts",
+                            tabBarIcon: ({ focused }) => (
+                                <TabIcon
+                                    focused={focused}
+                                    icon="notifications-outline"
+                                    title="Alerts"
+                                    isLight={isLight}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="settings"
+                        options={{
+                            title: "Settings",
+                            tabBarIcon: ({ focused }) => (
+                                <TabIcon
+                                    focused={focused}
+                                    icon="settings-outline"
+                                    title="Settings"
+                                    isLight={isLight}
+                                />
+                            ),
+                        }}
+                    />
+                </Tabs>
+            </View>
+        </SafeAreaProvider>
     );
 }
