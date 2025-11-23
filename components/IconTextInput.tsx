@@ -88,7 +88,6 @@ export default function IconTextInput({
                     secureTextEntry={actualSecure}
                     multiline={false}
                     numberOfLines={1}
-                    style={{ lineHeight: 48, paddingVertical: 0 }}
                     className={`h-12  text-light-card-foreground dark:text-dark-card-foreground ml-10 ${toggleSecure ? "mr-10" : "mr-1"}`}
                 />
             </View>
