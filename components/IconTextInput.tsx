@@ -65,7 +65,7 @@ export default function IconTextInput({
                         className="absolute right-3 top-1/2 -translate-y-1/2"
                     >
                         <Ionicons
-                            name={actualSecure ? "eye" : "eye-off"}
+                            name={actualSecure ? "eye-off" : "eye"}
                             size={18}
                             color={
                                 COLORS[isLight ? "light" : "dark"].muted
