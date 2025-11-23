@@ -53,7 +53,7 @@ export default function Login() {
         <ImageBackground
             source={bgImage}
             resizeMode="cover"
-            className="flex-1 flex-col justify-center h-full bg-light-background dark:bg-dark-background px-5"
+            className="flex-1 flex-col h-full bg-light-background dark:bg-dark-background px-5 pt-16"
         >
             {/* HEADER */}
             <View className="flex flex-col items-center">
@@ -174,7 +174,7 @@ export default function Login() {
                         Don't have an account?
                     </Text>
                     <TouchableOpacity
-                        onPress={() => console.log("sign up pressed!")}
+                        onPress={() => router.navigate("/(auth)/sign-up")}
                     >
                         <Text className="text-light-primary dark:text-dark-primary font-medium">
                             Sign Up
