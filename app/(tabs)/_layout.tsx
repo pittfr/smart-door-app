@@ -1,3 +1,4 @@
+import TabHeader from "@/components/TabHeader";
 import { COLORS } from "@/constants/theme";
 import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
@@ -60,18 +61,81 @@ export default function TabLayout() {
                         COLORS[isLight ? "light" : "dark"].background,
                 }}
             >
-                <View
-                    style={{
-                        height: insets.top,
-                        backgroundColor:
-                            COLORS[isLight ? "light" : "dark"].background,
-                    }}
-                />
                 <Tabs
                     key={colorScheme}
                     screenOptions={{
+                        headerShown: true,
+                        header: ({ route }) => {
+                            const perRoute = {
+                                index: {
+                                    description:
+                                        "Monitor and control your locks",
+                                    primaryAccent: COLORS.dark.primary.base,
+                                    secondaryAccent:
+                                        COLORS.dark.primary.base + "cc",
+                                    borderColor: COLORS.dark.primary.base,
+                                    iconName: "shield",
+                                },
+                                manage: {
+                                    description: "Users, PINs, and logs",
+                                    primaryAccent: "#615fff",
+                                    secondaryAccent: "#ad46ff",
+                                    borderColor: "#615fff",
+                                    iconName: "settings",
+                                },
+                                camera: {
+                                    description: "Live feed and intercom",
+                                    primaryAccent: "#fb2c36",
+                                    secondaryAccent: "#ff6900",
+                                    borderColor: "#fb2c36",
+                                    iconName: "video",
+                                },
+                                alerts: {
+                                    description: "Security alerts and updates",
+                                    primaryAccent: "#f0b100",
+                                    secondaryAccent: "#ff6900",
+                                    borderColor: "#f0b100",
+                                    iconName: "bell",
+                                },
+                                settings: {
+                                    description:
+                                        "Configure your smart lock system",
+                                    primaryAccent: "#45556c",
+                                    secondaryAccent: "#314158",
+                                    borderColor: "#62748e",
+                                    iconName: "settings",
+                                },
+                            } as const;
+                            const {
+                                description,
+                                primaryAccent,
+                                secondaryAccent,
+                                borderColor,
+                                iconName,
+                            } = perRoute[route.name as keyof typeof perRoute];
+                            const titles = {
+                                index: "Home",
+                                manage: "Manage",
+                                camera: "Camera",
+                                alerts: "Alerts",
+                                settings: "Settings",
+                            };
+                            return (
+                                <TabHeader
+                                    title={
+                                        titles[
+                                            route.name as keyof typeof titles
+                                        ]
+                                    }
+                                    description={description}
+                                    primaryAccent={primaryAccent}
+                                    secondaryAccent={secondaryAccent}
+                                    borderColor={borderColor}
+                                    icon={iconName}
+                                />
+                            );
+                        },
                         tabBarShowLabel: false,
-                        headerShown: false,
                         tabBarItemStyle: {
                             width: "100%",
                             height: "100%",
@@ -81,8 +145,8 @@ export default function TabLayout() {
                         tabBarStyle: {
                             backgroundColor:
                                 COLORS[isLight ? "light" : "dark"].card.base,
-                            height: Platform.OS === "ios" ? 90 : 70,
-                            paddingTop: 10,
+                            height: Platform.OS === "ios" ? 80 : 70,
+                            paddingTop: Platform.OS === "ios" ? 15 : 10,
                             paddingHorizontal: 10,
                             position: "absolute",
                             overflow: "hidden",
