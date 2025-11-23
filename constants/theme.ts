@@ -69,15 +69,15 @@ export type ThemePalette = {
 
 export const COLORS: { light: ThemePalette; dark: ThemePalette } = {
     light: {
-        background: "#F9FAFB",
-        foreground: "#252525",
+        background: "#F1F5F9",
+        foreground: "#1E293B",
         card: {
             base: "#FFFFFF",
-            foreground: "#252525",
+            foreground: "#1E293B",
         },
         popover: {
             base: "#FFFFFF",
-            foreground: "#252525",
+            foreground: "#1E293B",
         },
         primary: {
             base: "#1E3A8A",
@@ -92,8 +92,8 @@ export const COLORS: { light: ThemePalette; dark: ThemePalette } = {
             foreground: "#FFFFFF",
         },
         muted: {
-            base: "#ECECF0",
-            foreground: "#717182",
+            base: "#E2E8F0",
+            foreground: "#64748B",
         },
         accent: {
             base: "#14B8A6",
@@ -110,10 +110,10 @@ export const COLORS: { light: ThemePalette; dark: ThemePalette } = {
         border: "#0000001a",
         input: {
             base: "transparent",
-            background: "#F3F3F5",
+            background: "#F8FAFC",
         },
-        switch: "#CBCED4",
-        ring: "#B5B5B5",
+        switch: "#CBD5E1",
+        ring: "#94A3B8",
         chart: {
             1: "#E74C3C",
             2: "#3498DB",
