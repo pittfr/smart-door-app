@@ -44,7 +44,7 @@ export default function IconTextInput({
                 </Text>
             )}
             <View
-                className={`relative w-full h-12 bg-light-background dark:bg-dark-input/30 rounded-lg border-transparent dark:border-dark-input border-2  justify-center`}
+                className={`relative w-full h-12 bg-light-background dark:bg-dark-input/30 rounded-lg border-transparent dark:border-dark-input border-2 justify-center overflow-hidden`}
             >
                 <View className="absolute left-3 top-1/2 -translate-y-1/2">
                     <Ionicons
@@ -86,7 +86,10 @@ export default function IconTextInput({
                     }
                     keyboardType={keyboardType ?? "default"}
                     secureTextEntry={actualSecure}
-                    className={`text-light-card-foreground dark:text-dark-card-foreground ml-10 ${toggleSecure ? "mr-10" : "mr-1"}`}
+                    multiline={false}
+                    numberOfLines={1}
+                    style={{ lineHeight: 48, paddingVertical: 0 }}
+                    className={`h-12  text-light-card-foreground dark:text-dark-card-foreground ml-10 ${toggleSecure ? "mr-10" : "mr-1"}`}
                 />
             </View>
         </View>
