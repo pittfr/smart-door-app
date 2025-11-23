@@ -8,7 +8,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 
 import {
-    ImageBackground,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -32,9 +31,6 @@ export default function SignUpScreen() {
     const [code, setCode] = useState("");
 
     const { isLight } = useAppColorScheme();
-    const bgImage = isLight
-        ? require("../../assets/images/login-bg-light.png")
-        : require("../../assets/images/login-bg-dark.png");
 
     const onSignUpPress = async () => {
         if (!isLoaded) return;
@@ -79,11 +75,7 @@ export default function SignUpScreen() {
     };
 
     return (
-        <ImageBackground
-            source={bgImage}
-            resizeMode="cover"
-            className="flex-1 flex-col h-full bg-light-background dark:bg-dark-background"
-        >
+        <View className="flex-1 flex-col h-full">
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 keyboardVerticalOffset={Platform.OS === "ios" ? -40 : 0}
@@ -287,6 +279,6 @@ export default function SignUpScreen() {
                     </Text>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </ImageBackground>
+        </View>
     );
 }
