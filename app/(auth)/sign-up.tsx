@@ -2,7 +2,7 @@ import IconTextInput from "@/components/IconTextInput";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
 import { useSignUp } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -103,8 +103,8 @@ export default function SignUpScreen() {
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                 >
-                                    <Ionicons
-                                        name="lock-closed-outline"
+                                    <Feather
+                                        name="lock"
                                         size={50}
                                         color={COLORS.light.background}
                                     />
@@ -124,21 +124,21 @@ export default function SignUpScreen() {
                             <>
                                 {/* USER DETAILS */}
                                 <IconTextInput
-                                    icon="person-outline"
+                                    icon="user"
                                     label="First name"
                                     placeholder="Enter your first name"
                                     value={firstName}
                                     onChangeText={setFirstName}
                                 />
                                 <IconTextInput
-                                    icon="person-outline"
+                                    icon="user"
                                     label="Last name"
                                     placeholder="Enter your last name"
                                     value={lastName}
                                     onChangeText={setLastName}
                                 />
                                 <IconTextInput
-                                    icon="mail-outline"
+                                    icon="mail"
                                     label="Email"
                                     placeholder="Enter your email"
                                     value={emailAddress}
@@ -146,7 +146,7 @@ export default function SignUpScreen() {
                                     keyboardType="email-address"
                                 />
                                 <IconTextInput
-                                    icon="lock-closed-outline"
+                                    icon="lock"
                                     label="Password"
                                     placeholder="Enter your password"
                                     value={password}
@@ -155,7 +155,7 @@ export default function SignUpScreen() {
                                     toggleSecure
                                 />
                                 <IconTextInput
-                                    icon="lock-closed-outline"
+                                    icon="lock"
                                     label="Confirm password"
                                     placeholder="Re-enter your password"
                                     value={confirmPassword}
@@ -244,7 +244,7 @@ export default function SignUpScreen() {
                                     email
                                 </Text>
                                 <IconTextInput
-                                    icon="key-outline"
+                                    icon="key"
                                     label="Verification Code"
                                     placeholder="123456"
                                     value={code}

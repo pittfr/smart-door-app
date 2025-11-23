@@ -3,7 +3,7 @@ import SocialAuthButton from "@/components/SocialAuthButton";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
 import { useSSO } from "@clerk/clerk-expo";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -76,8 +76,8 @@ export default function Login() {
                                     start={{ x: 0, y: 0 }}
                                     end={{ x: 1, y: 1 }}
                                 >
-                                    <Ionicons
-                                        name="lock-closed-outline"
+                                    <Feather
+                                        name="lock"
                                         size={50}
                                         color={COLORS.light.background}
                                     />
@@ -95,7 +95,7 @@ export default function Login() {
                     <View className="bg-light-card dark:bg-dark-card flex flex-col rounded-2xl border-2 border-light-border dark:border-dark-border/50 shadow-2xl mt-8 p-6">
                         {/* EMAIL & PASSWORD */}
                         <IconTextInput
-                            icon="mail-outline"
+                            icon="mail"
                             label="Email"
                             placeholder="Enter your email"
                             value={email}
@@ -103,7 +103,7 @@ export default function Login() {
                             keyboardType="email-address"
                         />
                         <IconTextInput
-                            icon="lock-closed-outline"
+                            icon="lock"
                             label="Password"
                             placeholder="Enter your password"
                             value={password}
