@@ -1,6 +1,6 @@
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useState, type ComponentProps } from "react";
 import {
     Text,
@@ -11,7 +11,7 @@ import {
 } from "react-native";
 
 interface IconTextInputProps {
-    icon: ComponentProps<typeof Ionicons>["name"];
+    icon: ComponentProps<typeof Feather>["name"];
     label?: string;
     placeholder?: string;
     value: string;
@@ -47,9 +47,9 @@ export default function IconTextInput({
                 className={`relative w-full h-12 bg-light-background dark:bg-dark-input/30 rounded-lg border-transparent dark:border-dark-input border-2 justify-center overflow-hidden`}
             >
                 <View className="absolute left-3 top-1/2 -translate-y-1/2">
-                    <Ionicons
+                    <Feather
                         name={icon}
-                        size={18}
+                        size={16}
                         color={
                             COLORS[isLight ? "light" : "dark"].muted.foreground
                         }
@@ -64,9 +64,9 @@ export default function IconTextInput({
                         onPress={() => setIsSecure((v) => !v)}
                         className="absolute right-3 top-1/2 -translate-y-1/2"
                     >
-                        <Ionicons
+                        <Feather
                             name={actualSecure ? "eye-off" : "eye"}
-                            size={18}
+                            size={16}
                             color={
                                 COLORS[isLight ? "light" : "dark"].muted
                                     .foreground

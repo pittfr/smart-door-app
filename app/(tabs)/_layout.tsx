@@ -1,5 +1,5 @@
 import { COLORS } from "@/constants/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, Text, View } from "react-native";
@@ -18,7 +18,7 @@ const TabIcon = ({ focused, icon, title, isLight }: any) => {
                     "flex flex-col w-full flex-1 min-w-[65px] min-h-16 mt-4 justify-center items-center overflow-hidden bg-light-primary/10 dark:bg-dark-secondary/20 rounded-xl transition-all duration-200"
                 }
             >
-                <Ionicons
+                <Feather
                     name={icon}
                     size={20}
                     color={
@@ -35,7 +35,7 @@ const TabIcon = ({ focused, icon, title, isLight }: any) => {
     } else {
         return (
             <View className="flex flex-col w-full flex-1 min-w-[65px] min-h-16 mt-4 justify-center items-center overflow-hidden rounded-xl">
-                <Ionicons
+                <Feather
                     name={icon}
                     size={20}
                     color={COLORS[isLight ? "light" : "dark"].muted.foreground}
@@ -99,7 +99,7 @@ export default function TabLayout() {
                             tabBarIcon: ({ focused }) => (
                                 <TabIcon
                                     focused={focused}
-                                    icon="home-outline"
+                                    icon="home"
                                     title="Home"
                                     isLight={isLight}
                                 />
@@ -113,7 +113,7 @@ export default function TabLayout() {
                             tabBarIcon: ({ focused }) => (
                                 <TabIcon
                                     focused={focused}
-                                    icon="people-outline"
+                                    icon="users"
                                     title="Manage"
                                     isLight={isLight}
                                 />
@@ -127,7 +127,7 @@ export default function TabLayout() {
                             tabBarIcon: ({ focused }) => (
                                 <TabIcon
                                     focused={focused}
-                                    icon="camera-outline"
+                                    icon="camera"
                                     title="Camera"
                                     isLight={isLight}
                                 />
@@ -141,7 +141,7 @@ export default function TabLayout() {
                             tabBarIcon: ({ focused }) => (
                                 <TabIcon
                                     focused={focused}
-                                    icon="notifications-outline"
+                                    icon="bell"
                                     title="Alerts"
                                     isLight={isLight}
                                 />
@@ -155,7 +155,7 @@ export default function TabLayout() {
                             tabBarIcon: ({ focused }) => (
                                 <TabIcon
                                     focused={focused}
-                                    icon="settings-outline"
+                                    icon="settings"
                                     title="Settings"
                                     isLight={isLight}
                                 />
