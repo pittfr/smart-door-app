@@ -61,13 +61,6 @@ export default function TabLayout() {
                         COLORS[isLight ? "light" : "dark"].background,
                 }}
             >
-                {/* <View
-                    style={{
-                        height: insets.top,
-                        backgroundColor:
-                            COLORS[isLight ? "light" : "dark"].background,
-                    }}
-                /> */}
                 <Tabs
                     key={colorScheme}
                     screenOptions={{
@@ -152,8 +145,8 @@ export default function TabLayout() {
                         tabBarStyle: {
                             backgroundColor:
                                 COLORS[isLight ? "light" : "dark"].card.base,
-                            height: Platform.OS === "ios" ? 90 : 70,
-                            paddingTop: 10,
+                            height: Platform.OS === "ios" ? 80 : 70,
+                            paddingTop: Platform.OS === "ios" ? 15 : 10,
                             paddingHorizontal: 10,
                             position: "absolute",
                             overflow: "hidden",
