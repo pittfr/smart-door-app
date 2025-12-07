@@ -42,7 +42,6 @@ export type ThemePalette = {
         base: string;
         background: string;
     };
-    switch: string;
     ring: string;
     chart: {
         1: string;
@@ -107,12 +106,11 @@ export const COLORS: { light: ThemePalette; dark: ThemePalette } = {
             base: "#22C55E",
             foreground: "#FFFFFF",
         },
-        border: "#0000001a",
+        border: "#CBD5E1",
         input: {
             base: "transparent",
             background: "#F8FAFC",
         },
-        switch: "#CBD5E1",
         ring: "#94A3B8",
         chart: {
             1: "#E74C3C",
@@ -141,7 +139,7 @@ export const COLORS: { light: ThemePalette; dark: ThemePalette } = {
         foreground: "#F1F5F9",
         card: {
             base: "#1E293B",
-            foreground: "#F1F5F9",
+            foreground: "#FFFFFF",
         },
         popover: {
             base: "#1E293B",
@@ -175,12 +173,11 @@ export const COLORS: { light: ThemePalette; dark: ThemePalette } = {
             base: "#22C55E",
             foreground: "#FFFFFF",
         },
-        border: "#334155",
+        border: "#475569",
         input: {
             base: "#334155",
             background: "#F3F3F5",
         },
-        switch: "#CBCED4",
         ring: "#64748B",
         chart: {
             1: "#8B5CF6",
