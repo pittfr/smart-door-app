@@ -1,12 +1,10 @@
-import FormInput from "@/components/FormInput";
+import VerificationCodeInput from "@/components/VerificationCodeInput";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { useSignUp } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import { useState } from "react";
-
 import {
     KeyboardAvoidingView,
     Platform,
@@ -16,19 +14,19 @@ import {
     View,
 } from "react-native";
 
-export default function SignUpScreen() {
-    const { isLoaded, signUp, setActive } = useSignUp();
-    const router = useRouter();
-
+export default function VerifyEmail() {
     const { email } = useLocalSearchParams<{ email: string }>();
+    const [verificationCode, setVerificationCode] = useState<string>("");
 
     const { toggleColorScheme } = useColorScheme();
-
-    const [fullName, setFullName] = useState("");
-    const [password, setPassword] = useState<string>("");
-    const [confirmPassword, setConfirmPassword] = useState<string>("");
-
     const { isLight } = useAppColorScheme();
+
+    const router = useRouter();
+
+    const handleVerifyCode = () => {
+        console.log("Verification code:", verificationCode);
+        toggleColorScheme();
+    };
 
     return (
         <View className="relative h-full">
@@ -39,7 +37,7 @@ export default function SignUpScreen() {
             >
                 <ScrollView
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 80 }}
+                    contentContainerStyle={{ paddingBottom: 50 }}
                     className="px-5 pt-16"
                     keyboardShouldPersistTaps="handled"
                 >
@@ -54,45 +52,25 @@ export default function SignUpScreen() {
                             </View>
                         </View>
                     </View>
-                    <View className="items-center mb-10">
+                    <View className="items-center">
                         <Text className="text-3xl font-semibold text-light-foreground dark:text-dark-foreground">
-                            Register
+                            Email Verification
                         </Text>
-                        <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mt-1">
-                            Just a few quick steps to get started
+                        <Text className="text-light-muted-foreground dark:text-dark-muted-foreground whitespace-nowrap mt-1">
+                            Enter the 6-digit code that was sent to
+                        </Text>
+                        <Text className="text-sm font-bold text-light-muted-foreground dark:text-dark-foreground whitespace-nowrap mt-1">
+                            {email}
                         </Text>
                     </View>
-                    <View className="gap-4">
-                        <FormInput
-                            value={email}
-                            inputType="email-address"
-                            isDisabled
-                            showDisabledEditText
-                            onDisabledEditPress={() =>
-                                router.replace({
-                                    pathname: "/(auth)",
-                                    params: { email: email },
-                                })
-                            }
-                        />
-                        <FormInput
-                            placeholder="Full Name"
-                            value={fullName}
-                            onChangeText={setFullName}
-                        />
-                        <FormInput
-                            placeholder="Password"
-                            value={password}
-                            onChangeText={setPassword}
-                            inputType="secure-toggleable"
-                        />
-                        <FormInput
-                            placeholder="Confirm Password"
-                            value={confirmPassword}
-                            onChangeText={setConfirmPassword}
-                            inputType="secure-toggleable"
+
+                    <View className="my-8">
+                        <VerificationCodeInput
+                            length={6}
+                            onChangeCode={setVerificationCode}
                         />
                     </View>
+
                     <View
                         style={{
                             boxShadow: `0px 2px 10px ${COLORS.dark.primary.base}`,
@@ -101,15 +79,10 @@ export default function SignUpScreen() {
                     >
                         <TouchableOpacity
                             className="h-full justify-center items-center"
-                            onPress={() =>
-                                router.push({
-                                    pathname: "/(auth)/verify-email",
-                                    params: { email },
-                                })
-                            }
+                            onPress={handleVerifyCode}
                         >
                             <Text className="text-white font-semibold text-lg">
-                                Sign In
+                                Verify
                             </Text>
                         </TouchableOpacity>
                     </View>

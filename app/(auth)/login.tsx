@@ -1,11 +1,9 @@
-import IconTextInput from "@/components/IconTextInput";
-import SocialAuthButton from "@/components/SocialAuthButton";
+import FormInput from "@/components/FormInput";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { useSSO } from "@clerk/clerk-expo";
-import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
 import { useState } from "react";
 import {
     KeyboardAvoidingView,
@@ -17,183 +15,112 @@ import {
 } from "react-native";
 
 export default function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const { email } = useLocalSearchParams<{ email: string }>();
+    const [password, setPassword] = useState<string>("");
+
+    const { toggleColorScheme } = useColorScheme();
     const { isLight } = useAppColorScheme();
 
-    const { startSSOFlow } = useSSO();
     const router = useRouter();
 
-    const handleOAuthSignIn = async (
-        provider: "google" | "facebook" | "apple"
-    ) => {
-        try {
-            const strategy = `oauth_${provider}` as any;
-
-            const { createdSessionId, setActive } = await startSSOFlow({
-                strategy,
-            });
-
-            if (setActive && createdSessionId) {
-                setActive({ session: createdSessionId });
-                router.replace("/(tabs)");
-            }
-        } catch (error) {
-            console.error("OAuth error:", error);
-        }
-    };
-
-    const handleGoogleSignIn = () => handleOAuthSignIn("google");
-    const handleFacebookSignIn = () => handleOAuthSignIn("facebook");
-    const handleAppleSignIn = () => handleOAuthSignIn("apple");
-
     return (
-        <View className="flex-1 flex-col h-full">
+        <View className="relative h-full">
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 keyboardVerticalOffset={Platform.OS === "ios" ? -40 : 0}
+                style={{ flex: 1 }}
             >
                 <ScrollView
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 80 }}
+                    contentContainerStyle={{ paddingBottom: 50 }}
                     className="px-5 pt-16"
+                    keyboardShouldPersistTaps="handled"
                 >
-                    {/* HEADER */}
-                    <View className="flex flex-col items-center">
-                        <View className="overflow-hidden rounded-3xl mb-4">
-                            <View className="w-28 h-28">
-                                <LinearGradient
-                                    style={{
-                                        flex: 1,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
-                                    colors={[
-                                        COLORS.light.primary.base,
-                                        COLORS.light.primary.light,
-                                        COLORS.light.secondary.base,
-                                    ]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                >
-                                    <Feather
-                                        name="lock"
-                                        size={50}
-                                        color={COLORS.light.background}
-                                    />
-                                </LinearGradient>
+                    <View className="w-full h-28 items-center mb-8">
+                        <View className="rounded-full overflow-hidden">
+                            <View className="w-28 h-full items-center justify-center bg-slate-200/80 dark:bg-slate-800/50">
+                                <MaterialCommunityIcons
+                                    name="shield-lock-outline"
+                                    size={54}
+                                    color={COLORS.dark.primary.base}
+                                />
                             </View>
                         </View>
-                        <Text className="text-4xl font-semibold mb-2 text-light-foreground dark:text-dark-foreground">
-                            SecureLock
+                    </View>
+                    <View className="items-center mb-10">
+                        <Text className="text-3xl font-semibold text-light-foreground dark:text-dark-foreground">
+                            Welcome back
                         </Text>
-                        <Text className="text-light-muted-foreground dark:text-dark-muted-foreground">
-                            Welcome back to your smart lock
+                        <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mt-1">
+                            Sign in to pick up where you left off
                         </Text>
                     </View>
-                    {/* CARD */}
-                    <View className="bg-light-card dark:bg-dark-card flex flex-col rounded-2xl border-2 border-light-border dark:border-dark-border/50 shadow-2xl mt-8 p-6">
-                        {/* EMAIL & PASSWORD */}
-                        <IconTextInput
-                            icon="mail"
-                            label="Email"
-                            placeholder="Enter your email"
+                    <View className="gap-4">
+                        <FormInput
                             value={email}
-                            onChangeText={setEmail}
-                            keyboardType="email-address"
+                            inputType="email-address"
+                            isDisabled
+                            showDisabledEditText
+                            onDisabledEditPress={() =>
+                                router.replace({
+                                    pathname: "/(auth)",
+                                    params: { email: email },
+                                })
+                            }
                         />
-                        <IconTextInput
-                            icon="lock"
-                            label="Password"
-                            placeholder="Enter your password"
+                        <FormInput
+                            placeholder="Password"
                             value={password}
                             onChangeText={setPassword}
-                            secureTextEntry
-                            toggleSecure
+                            inputType="secure-toggleable"
                         />
-                        {/* FORGOT PASSWORD? */}
-                        <TouchableOpacity
-                            className="ml-auto mr-0 mb-4"
-                            onPress={() =>
-                                console.log("forgot password pressed!")
-                            }
-                        >
-                            <Text className="text-light-primary dark:text-dark-primary">
-                                Forgot password?
+                    </View>
+                    <View style={{ paddingLeft: 8 }} className="mt-2">
+                        <TouchableOpacity>
+                            <Text className="font-semibold text-sm text-dark-primary">
+                                Forgot your password?
                             </Text>
                         </TouchableOpacity>
-                        {/* SIGN IN BUTTON */}
-                        <View className="rounded-lg overflow-hidden">
-                            <LinearGradient
-                                colors={[
-                                    COLORS.light.primary.base,
-                                    "#2563EB",
-                                    COLORS.light.secondary.base,
-                                ]}
-                                start={{ x: 0, y: 1 }}
-                                end={{ x: 1, y: 1 }}
-                            >
-                                <TouchableOpacity
-                                    className="w-full h-12 flex justify-center items-center"
-                                    onPress={() => {
-                                        console.log("sign in button pressed!");
-                                    }}
-                                >
-                                    <Text className="font-medium text-light-primary-foreground">
-                                        Sign In
-                                    </Text>
-                                </TouchableOpacity>
-                            </LinearGradient>
-                        </View>
-                        {/* OR CONTINUE WITH */}
-                        <View className="relative my-8">
-                            <View className="w-full border-t border-light-border dark:border-dark-border" />
-                            <View className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ">
-                                <Text className="bg-light-card dark:bg-dark-card text-sm text-light-muted-foreground dark:text-dark-muted-foreground px-2">
-                                    Or continue with
-                                </Text>
-                            </View>
-                        </View>
-                        {/* SIGN IN WITH SOCIAL ACCOUNTS */}
-
-                        <View className="flex-row items-center justify-center gap-4">
-                            <SocialAuthButton
-                                provider="Google"
-                                onPress={handleGoogleSignIn}
-                            />
-                            <SocialAuthButton
-                                provider="Facebook"
-                                onPress={handleFacebookSignIn}
-                            />
-                            {Platform.OS === "ios" && (
-                                <SocialAuthButton
-                                    provider="Apple"
-                                    onPress={handleAppleSignIn}
-                                />
-                            )}
-                        </View>
-
-                        {/* DON'T HAVE AN ACCOUNT? */}
-                        <View className="pt-4 flex-row justify-center items-center">
-                            <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mr-2">
-                                Don't have an account?
-                            </Text>
-                            <TouchableOpacity
-                                onPress={() =>
-                                    router.navigate("/(auth)/sign-up")
-                                }
-                            >
-                                <Text className="text-light-primary dark:text-dark-primary font-medium">
-                                    Sign Up
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
                     </View>
-                    <Text className="text-xs text-light-muted-foreground dark:text-dark-muted-foreground text-center mt-6">
-                        Protected by end-to-end encryption
-                    </Text>
+                    <View
+                        style={{
+                            boxShadow: `0px 2px 10px ${COLORS.dark.primary.base}`,
+                        }}
+                        className="w-full h-16 bg-dark-primary rounded-xl mt-4"
+                    >
+                        <TouchableOpacity
+                            className="h-full justify-center items-center"
+                            onPress={() => toggleColorScheme()}
+                        >
+                            <Text className="text-white font-semibold text-lg">
+                                Sign In
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+            <View
+                style={{
+                    position: "absolute",
+                    bottom: 20,
+                    left: "50%",
+                    transform: [{ translateX: "-50%" }],
+                }}
+                className="flex-row justify-center items-center gap-1"
+            >
+                <Ionicons
+                    name={
+                        isLight
+                            ? "shield-checkmark-outline"
+                            : "shield-checkmark"
+                    }
+                    size={14}
+                    color={COLORS[isLight ? "light" : "dark"].muted.foreground}
+                />
+                <Text className="text-xs text-light-muted-foreground dark:text-dark-muted-foreground">
+                    Protected by end-to-end encryption
+                </Text>
+            </View>
         </View>
     );
 }

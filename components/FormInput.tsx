@@ -3,6 +3,7 @@ import { useAppColorScheme } from "@/hooks/use-theme";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import {
+    Text,
     TextInput,
     TouchableOpacity,
     View,
@@ -18,8 +19,11 @@ interface FormInputProps {
     label?: string;
     placeholder?: string;
     value: string;
-    onChangeText: (text: string) => void;
+    onChangeText?: (text: string) => void;
     inputType?: InputType;
+    isDisabled?: boolean;
+    showDisabledEditText?: boolean;
+    onDisabledEditPress?: () => void;
 }
 
 export default function FormInput({
@@ -27,6 +31,9 @@ export default function FormInput({
     value,
     onChangeText,
     inputType = "default",
+    isDisabled = false,
+    showDisabledEditText = false,
+    onDisabledEditPress,
 }: FormInputProps) {
     const { isLight } = useAppColorScheme();
     const [isSecureVisible, setIsSecureVisible] = useState<boolean>(false);
@@ -41,13 +48,8 @@ export default function FormInput({
         : (inputType as TextInputProps["keyboardType"]);
 
     return (
-        <View className="mb-4">
+        <View>
             <View
-                style={{
-                    boxShadow:
-                        "0px 0px 4px " +
-                        COLORS[isLight ? "light" : "dark"].border,
-                }}
                 className={
                     "relative w-full h-14 bg-light-card dark:bg-dark-card rounded-lg border border-light-border dark:border-dark-border justify-center overflow-hidden"
                 }
@@ -71,9 +73,22 @@ export default function FormInput({
                         />
                     </TouchableOpacity>
                 )}
+                {showDisabledEditText && (
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel="Edit input"
+                        onPress={onDisabledEditPress}
+                        className="absolute right-4 top-1/2 -translate-y-1/2"
+                    >
+                        <Text className="font-semibold text-dark-primary">
+                            Edit
+                        </Text>
+                    </TouchableOpacity>
+                )}
                 <TextInput
                     value={value}
-                    onChangeText={onChangeText}
+                    onChangeText={!isDisabled ? onChangeText : undefined}
+                    editable={!isDisabled}
                     placeholder={placeholder ?? ""}
                     placeholderTextColor={
                         COLORS[isLight ? "light" : "dark"].muted.foreground
@@ -85,7 +100,7 @@ export default function FormInput({
                     secureTextEntry={secureTextEntry}
                     multiline={false}
                     numberOfLines={1}
-                    className={`h-12  text-light-card-foreground dark:text-dark-card-foreground ml-4 ${hasToggle ? "mr-10" : "mr-1"}`}
+                    className={`h-12 ${isDisabled ? "text-light-card-foreground/50 dark:text-dark-card-foreground/50" : "text-light-card-foreground dark:text-dark-card-foreground"} ml-4 ${hasToggle || showDisabledEditText ? "mr-14" : "mr-1"}`}
                 />
             </View>
         </View>
