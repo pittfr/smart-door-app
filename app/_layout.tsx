@@ -1,6 +1,6 @@
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { ClerkLoaded, ClerkProvider, useAuth } from "@clerk/clerk-expo";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
+import ClerkAndConvexProvider from "@/providers/ClerkAndConvexProvider";
+import { useAuth } from "@clerk/clerk-expo";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -36,11 +36,9 @@ export default function RootLayout() {
     const { isLight } = useAppColorScheme();
 
     return (
-        <ClerkProvider tokenCache={tokenCache}>
-            <ClerkLoaded>
-                <StatusBar style={isLight ? "dark" : "light"} />
-                <InitialLayout />
-            </ClerkLoaded>
-        </ClerkProvider>
+        <ClerkAndConvexProvider>
+            <StatusBar style={isLight ? "dark" : "light"} />
+            <InitialLayout />
+        </ClerkAndConvexProvider>
     );
 }
