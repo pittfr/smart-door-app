@@ -1,11 +1,13 @@
 import FormInput from "@/components/FormInput";
 import SocialAuthButton from "@/components/SocialAuthButton";
 import { COLORS } from "@/constants/theme";
+import { api } from "@/convex/_generated/api";
 import { useAppColorScheme } from "@/hooks/use-theme";
 import { useSSO } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useConvex } from "convex/react";
 import * as AuthSession from "expo-auth-session";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
     ActivityIndicator,
@@ -19,6 +21,8 @@ import {
 type providerType = "google" | "facebook" | "apple";
 
 export default function Index() {
+    const convex = useConvex();
+
     const { email } = useLocalSearchParams<{ email: string }>();
     const [emailAddress, setEmailAddress] = useState<string>(email || "");
 
@@ -28,6 +32,12 @@ export default function Index() {
     const router = useRouter();
 
     const { startSSOFlow } = useSSO();
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsRedirecting(false);
+        }, [])
+    );
 
     const handleOAuthSignIn = useCallback(async (provider: providerType) => {
         try {
@@ -63,7 +73,13 @@ export default function Index() {
 
     const handleContinue = async () => {
         try {
-            if (emailAddress === "login") {
+            setIsRedirecting(true);
+
+            const existingUser = await convex.query(api.users.getUserByEmail, {
+                email: emailAddress.toLowerCase(),
+            });
+
+            if (existingUser) {
                 router.push({
                     pathname: "/(auth)/login",
                     params: { email: emailAddress },
@@ -75,6 +91,7 @@ export default function Index() {
                 });
             }
         } catch (error) {
+            setIsRedirecting(false);
             console.error("Error checking email: ", error);
         }
     };
