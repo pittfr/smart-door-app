@@ -1,8 +1,10 @@
+import ErrorBanner from "@/components/ErrorBanner";
 import FormInput from "@/components/FormInput";
 import SocialAuthButton from "@/components/SocialAuthButton";
 import { COLORS } from "@/constants/theme";
 import { api } from "@/convex/_generated/api";
 import { useAppColorScheme } from "@/hooks/use-theme";
+import { validateEmail } from "@/utils/validation";
 import { useSSO } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useConvex } from "convex/react";
@@ -26,6 +28,7 @@ export default function Index() {
     const { email } = useLocalSearchParams<{ email: string }>();
     const [emailAddress, setEmailAddress] = useState<string>(email || "");
 
+    const [formError, setFormError] = useState<string>("");
     const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
     const { isLight } = useAppColorScheme();
 
@@ -72,8 +75,20 @@ export default function Index() {
     }, []);
 
     const handleContinue = async () => {
+        setIsRedirecting(true);
+
+        const validationError = await validateEmail({
+            email: emailAddress,
+        });
+
+        if (validationError) {
+            setFormError(validationError);
+            setIsRedirecting(false);
+            return;
+        }
+
         try {
-            setIsRedirecting(true);
+            setFormError("");
 
             const existingUser = await convex.query(api.users.getUserByEmail, {
                 email: emailAddress.toLowerCase(),
@@ -97,7 +112,7 @@ export default function Index() {
     };
 
     return (
-        <View className="w-full h-full items-center">
+        <View className="w-full h-full">
             {isRedirecting ? (
                 <View className="w-full h-full justify-center items-center">
                     <ActivityIndicator size={"large"} />
@@ -158,12 +173,15 @@ export default function Index() {
                                     </Text>
                                 </View>
                             </View>
-                            <FormInput
-                                placeholder="Email Address"
-                                value={emailAddress}
-                                onChangeText={setEmailAddress}
-                                inputType="email-address"
-                            />
+                            <View className="gap-4">
+                                <ErrorBanner message={formError} />
+                                <FormInput
+                                    placeholder="Email Address"
+                                    value={emailAddress}
+                                    onChangeText={setEmailAddress}
+                                    inputType="email-address"
+                                />
+                            </View>
                             <View
                                 style={{
                                     boxShadow: `0px 2px 10px ${COLORS.dark.primary.base}`,
