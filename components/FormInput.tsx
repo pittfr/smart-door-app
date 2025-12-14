@@ -48,61 +48,57 @@ export default function FormInput({
         : (inputType as TextInputProps["keyboardType"]);
 
     return (
-        <View>
-            <View
-                className={
-                    "relative w-full h-14 bg-light-card dark:bg-dark-card rounded-lg border border-light-border dark:border-dark-border justify-center overflow-hidden"
-                }
-            >
-                {hasToggle && (
-                    <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={
-                            isSecureVisible ? "Hide password" : "Show password"
+        <View
+            className={
+                "relative w-full h-14 bg-light-card dark:bg-dark-card rounded-lg border border-light-border dark:border-dark-border justify-center overflow-hidden"
+            }
+        >
+            {hasToggle && (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                        isSecureVisible ? "Hide password" : "Show password"
+                    }
+                    onPress={() => setIsSecureVisible((v) => !v)}
+                    className="absolute right-5 top-1/2 -translate-y-1/2"
+                >
+                    <Feather
+                        name={isSecureVisible ? "eye" : "eye-off"}
+                        size={18}
+                        color={
+                            COLORS[isLight ? "light" : "dark"].muted.foreground
                         }
-                        onPress={() => setIsSecureVisible((v) => !v)}
-                        className="absolute right-5 top-1/2 -translate-y-1/2"
-                    >
-                        <Feather
-                            name={isSecureVisible ? "eye" : "eye-off"}
-                            size={18}
-                            color={
-                                COLORS[isLight ? "light" : "dark"].muted
-                                    .foreground
-                            }
-                        />
-                    </TouchableOpacity>
-                )}
-                {showDisabledEditText && (
-                    <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel="Edit input"
-                        onPress={onDisabledEditPress}
-                        className="absolute right-4 top-1/2 -translate-y-1/2"
-                    >
-                        <Text className="font-semibold text-dark-primary">
-                            Edit
-                        </Text>
-                    </TouchableOpacity>
-                )}
-                <TextInput
-                    value={value}
-                    onChangeText={!isDisabled ? onChangeText : undefined}
-                    editable={!isDisabled}
-                    placeholder={placeholder ?? ""}
-                    placeholderTextColor={
-                        COLORS[isLight ? "light" : "dark"].muted.foreground
-                    }
-                    selectionColor={
-                        COLORS[isLight ? "light" : "dark"].primary.base
-                    }
-                    keyboardType={actualKeyboardType}
-                    secureTextEntry={secureTextEntry}
-                    multiline={false}
-                    numberOfLines={1}
-                    className={`h-12 ${isDisabled ? "text-light-card-foreground/50 dark:text-dark-card-foreground/50" : "text-light-card-foreground dark:text-dark-card-foreground"} ml-4 ${hasToggle || showDisabledEditText ? "mr-14" : "mr-1"}`}
-                />
-            </View>
+                    />
+                </TouchableOpacity>
+            )}
+            {showDisabledEditText && (
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit input"
+                    onPress={onDisabledEditPress}
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                >
+                    <Text className="font-semibold text-dark-primary">
+                        Edit
+                    </Text>
+                </TouchableOpacity>
+            )}
+            <TextInput
+                value={value}
+                onChangeText={!isDisabled ? onChangeText : undefined}
+                editable={!isDisabled}
+                placeholder={placeholder ?? ""}
+                placeholderTextColor={
+                    COLORS[isLight ? "light" : "dark"].muted.foreground
+                }
+                selectionColor={COLORS[isLight ? "light" : "dark"].primary.base}
+                keyboardType={actualKeyboardType}
+                secureTextEntry={secureTextEntry}
+                multiline={false}
+                numberOfLines={1}
+                style={{ lineHeight: 16 }}
+                className={`h-14 ${isDisabled ? "text-light-card-foreground/50 dark:text-dark-card-foreground/50" : "text-light-card-foreground dark:text-dark-card-foreground"} ml-4 ${hasToggle || showDisabledEditText ? "mr-14" : "mr-1"}`}
+            />
         </View>
     );
 }
