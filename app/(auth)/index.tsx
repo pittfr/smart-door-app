@@ -1,12 +1,15 @@
 import ErrorBanner from "@/components/ErrorBanner";
 import FormInput from "@/components/FormInput";
+import SocialAuthButton from "@/components/SocialAuthButton";
 import { COLORS } from "@/constants/theme";
+import { api } from "@/convex/_generated/api";
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { validatePassword } from "@/utils/validation";
-import { useSignIn } from "@clerk/clerk-expo";
+import { validateEmail } from "@/utils/validation";
+import { useSSO } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useConvex } from "convex/react";
+import * as AuthSession from "expo-auth-session";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useColorScheme } from "nativewind";
 import { useCallback, useState } from "react";
 import {
     ActivityIndicator,
@@ -17,21 +20,21 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+type providerType = "google" | "facebook" | "apple";
 
-export default function Login() {
-    const { isLoaded, signIn, setActive } = useSignIn();
-    const router = useRouter();
+export default function Index() {
+    const convex = useConvex();
 
     const { email } = useLocalSearchParams<{ email: string }>();
-
-    const { toggleColorScheme } = useColorScheme();
-
-    const [password, setPassword] = useState<string>("");
+    const [emailAddress, setEmailAddress] = useState<string>(email || "");
 
     const [formError, setFormError] = useState<string>("");
-
     const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
     const { isLight } = useAppColorScheme();
+
+    const router = useRouter();
+
+    const { startSSOFlow } = useSSO();
 
     useFocusEffect(
         useCallback(() => {
@@ -39,13 +42,43 @@ export default function Login() {
         }, [])
     );
 
-    const onSignInPress = async () => {
-        if (!isLoaded) return;
+    const handleOAuthSignIn = useCallback(async (provider: providerType) => {
+        try {
+            const strategy = `oauth_${provider}` as any;
 
+            const { createdSessionId, setActive } = await startSSOFlow({
+                strategy,
+                redirectUrl: AuthSession.makeRedirectUri({
+                    scheme: "exp",
+                    path: "/",
+                }),
+            });
+
+            if (createdSessionId) {
+                setActive!({
+                    session: createdSessionId,
+                    navigate: async ({ session }) => {
+                        if (session?.currentTask) {
+                            console.log(session?.currentTask);
+                            router.push("/(auth)/verify-email");
+                            return;
+                        }
+
+                        setIsRedirecting(true);
+                    },
+                });
+            } else {
+            }
+        } catch (err) {
+            console.error(JSON.stringify(err, null, 2));
+        }
+    }, []);
+
+    const handleContinue = async () => {
         setIsRedirecting(true);
 
-        const validationError = await validatePassword({
-            password,
+        const validationError = await validateEmail({
+            email: emailAddress,
         });
 
         if (validationError) {
@@ -57,59 +90,35 @@ export default function Login() {
         try {
             setFormError("");
 
-            await signIn.create({
-                strategy: "password",
-                identifier: email,
-                password,
+            const existingUser = await convex.query(api.users.getUserByEmail, {
+                email: emailAddress.toLowerCase(),
             });
 
-            await setActive({ session: signIn.createdSessionId });
-
-            router.replace("/(tabs)");
-        } catch (err) {
-            const clerkErr = err as any;
-
-            if (
-                clerkErr.errors &&
-                Array.isArray(clerkErr.errors) &&
-                clerkErr.errors.length > 0
-            ) {
-                const errorCode = clerkErr.errors[0].code;
-                const errorMessage =
-                    clerkErr.errors[0].longMessage ||
-                    clerkErr.errors[0].message;
-
-                switch (errorCode) {
-                    case "form_password_incorrect":
-                        setFormError(
-                            "Your password is incorrect. Please check and try again."
-                        );
-                        break;
-                    default:
-                        setFormError(
-                            errorMessage ||
-                                "An error occurred during sign up. Please try again later."
-                        );
-                }
+            if (existingUser) {
+                router.push({
+                    pathname: "/(auth)/login",
+                    params: { email: emailAddress },
+                });
             } else {
-                setFormError(
-                    "An error occurred during sign up. Please try again later."
-                );
-                console.error("Sign up error:", JSON.stringify(err, null, 2));
+                router.push({
+                    pathname: "/(auth)/sign-up",
+                    params: { email: emailAddress },
+                });
             }
-
+        } catch (error) {
             setIsRedirecting(false);
+            console.error("Error checking email: ", error);
         }
     };
 
     return (
-        <View className="relative h-full">
+        <View className="w-full h-full">
             {isRedirecting ? (
                 <View className="w-full h-full justify-center items-center">
                     <ActivityIndicator size={"large"} />
                 </View>
             ) : (
-                <>
+                <View className="relative w-full h-full">
                     <KeyboardAvoidingView
                         behavior={Platform.OS === "ios" ? "padding" : "height"}
                         keyboardVerticalOffset={Platform.OS === "ios" ? -40 : 0}
@@ -117,7 +126,7 @@ export default function Login() {
                     >
                         <ScrollView
                             showsVerticalScrollIndicator={false}
-                            contentContainerStyle={{ paddingBottom: 50 }}
+                            contentContainerStyle={{ paddingBottom: 60 }}
                             className="px-5 pt-16"
                             keyboardShouldPersistTaps="handled"
                         >
@@ -132,56 +141,59 @@ export default function Login() {
                                     </View>
                                 </View>
                             </View>
-                            <View
-                                className={`items-center ${formError ? "mb-4" : "mb-10"}`}
-                            >
+                            <View className="items-center mb-10">
                                 <Text className="text-3xl font-semibold text-light-foreground dark:text-dark-foreground">
-                                    Welcome back
+                                    Welcome
                                 </Text>
                                 <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mt-1">
-                                    Sign in to pick up where you left off
+                                    Sign in or create an account to continue
                                 </Text>
+                            </View>
+                            <View className="w-full items-center gap-3">
+                                <SocialAuthButton
+                                    provider="Google"
+                                    onPress={() => handleOAuthSignIn("google")}
+                                />
+                                <SocialAuthButton
+                                    provider="Apple"
+                                    onPress={() => handleOAuthSignIn("apple")}
+                                />
+                                <SocialAuthButton
+                                    provider="Facebook"
+                                    onPress={() =>
+                                        handleOAuthSignIn("facebook")
+                                    }
+                                />
+                            </View>
+                            <View className="relative my-12">
+                                <View className="w-full border-t border-t-slate-300 dark:border-t-dark-border" />
+                                <View className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ">
+                                    <Text className="bg-light-background dark:bg-dark-background text-sm text-light-muted-foreground dark:text-dark-muted-foreground px-2 mb-1">
+                                        or continue with
+                                    </Text>
+                                </View>
                             </View>
                             <View className="gap-4">
                                 <ErrorBanner message={formError} />
                                 <FormInput
-                                    value={email}
+                                    placeholder="Email Address"
+                                    value={emailAddress}
+                                    onChangeText={setEmailAddress}
                                     inputType="email-address"
-                                    isDisabled
-                                    showDisabledEditText
-                                    onDisabledEditPress={() =>
-                                        router.replace({
-                                            pathname: "/(auth)",
-                                            params: { email: email },
-                                        })
-                                    }
-                                />
-                                <FormInput
-                                    placeholder="Password"
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    inputType="secure-toggleable"
                                 />
                             </View>
-                            {/* <View style={{ paddingLeft: 8 }} className="mt-2">
-                            <TouchableOpacity>
-                                <Text className="font-semibold text-sm text-dark-primary">
-                                    Forgot your password?
-                                </Text>
-                            </TouchableOpacity>
-                        </View> */}
                             <View
                                 style={{
                                     boxShadow: `0px 2px 10px ${COLORS.dark.primary.base}`,
                                 }}
-                                className="w-full h-16 bg-dark-primary rounded-xl mt-4"
+                                className="w-full h-16 bg-dark-primary rounded-xl my-4"
                             >
                                 <TouchableOpacity
                                     className="h-full justify-center items-center"
-                                    onPress={() => onSignInPress()}
+                                    onPress={() => handleContinue()}
                                 >
                                     <Text className="text-white font-semibold text-lg">
-                                        Sign In
+                                        Continue
                                     </Text>
                                 </TouchableOpacity>
                             </View>
@@ -212,7 +224,7 @@ export default function Login() {
                             Protected by end-to-end encryption
                         </Text>
                     </View>
-                </>
+                </View>
             )}
         </View>
     );

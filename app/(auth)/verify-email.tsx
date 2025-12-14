@@ -1,9 +1,9 @@
 import ErrorBanner from "@/components/ErrorBanner";
-import FormInput from "@/components/FormInput";
+import VerificationCodeInput from "@/components/VerificationCodeInput";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { validatePassword } from "@/utils/validation";
-import { useSignIn } from "@clerk/clerk-expo";
+import { validateEmailCode } from "@/utils/validation";
+import { useSignUp } from "@clerk/clerk-expo";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
@@ -18,20 +18,20 @@ import {
     View,
 } from "react-native";
 
-export default function Login() {
-    const { isLoaded, signIn, setActive } = useSignIn();
-    const router = useRouter();
+export default function VerifyEmail() {
+    const { isLoaded, signUp, setActive } = useSignUp();
 
     const { email } = useLocalSearchParams<{ email: string }>();
+    const [verificationCode, setVerificationCode] = useState<string>("");
 
     const { toggleColorScheme } = useColorScheme();
-
-    const [password, setPassword] = useState<string>("");
 
     const [formError, setFormError] = useState<string>("");
 
     const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
     const { isLight } = useAppColorScheme();
+
+    const router = useRouter();
 
     useFocusEffect(
         useCallback(() => {
@@ -39,13 +39,13 @@ export default function Login() {
         }, [])
     );
 
-    const onSignInPress = async () => {
+    const onVerifyPress = async () => {
         if (!isLoaded) return;
 
         setIsRedirecting(true);
 
-        const validationError = await validatePassword({
-            password,
+        const validationError = await validateEmailCode({
+            code: verificationCode,
         });
 
         if (validationError) {
@@ -55,17 +55,15 @@ export default function Login() {
         }
 
         try {
-            setFormError("");
-
-            await signIn.create({
-                strategy: "password",
-                identifier: email,
-                password,
+            const signUpAttempt = await signUp.attemptEmailAddressVerification({
+                code: verificationCode,
             });
 
-            await setActive({ session: signIn.createdSessionId });
-
-            router.replace("/(tabs)");
+            if (signUpAttempt.status === "complete") {
+                await setActive({ session: signUpAttempt.createdSessionId });
+            } else {
+                console.error(JSON.stringify(signUpAttempt, null, 2));
+            }
         } catch (err) {
             const clerkErr = err as any;
 
@@ -80,9 +78,19 @@ export default function Login() {
                     clerkErr.errors[0].message;
 
                 switch (errorCode) {
-                    case "form_password_incorrect":
+                    case "form_code_incorrect":
                         setFormError(
-                            "Your password is incorrect. Please check and try again."
+                            "The verification code you entered is incorrect. Please try again."
+                        );
+                        break;
+                    case "verification_failed":
+                        setFormError(
+                            "Too many failed attempts. Please try again later."
+                        );
+                        break;
+                    case "verification_expired":
+                        setFormError(
+                            "The verification code has expired. Please request a new code."
                         );
                         break;
                     default:
@@ -132,44 +140,25 @@ export default function Login() {
                                     </View>
                                 </View>
                             </View>
-                            <View
-                                className={`items-center ${formError ? "mb-4" : "mb-10"}`}
-                            >
+                            <View className="items-center">
                                 <Text className="text-3xl font-semibold text-light-foreground dark:text-dark-foreground">
-                                    Welcome back
+                                    Email Verification
                                 </Text>
-                                <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mt-1">
-                                    Sign in to pick up where you left off
+                                <Text className="text-light-muted-foreground dark:text-dark-muted-foreground whitespace-nowrap mt-1">
+                                    Enter the 6-digit code that was sent to
+                                </Text>
+                                <Text className="text-sm font-bold text-light-muted-foreground dark:text-dark-foreground whitespace-nowrap mt-1">
+                                    {email}
                                 </Text>
                             </View>
-                            <View className="gap-4">
+                            <View className={formError ? "my-4 gap-4" : "my-8"}>
                                 <ErrorBanner message={formError} />
-                                <FormInput
-                                    value={email}
-                                    inputType="email-address"
-                                    isDisabled
-                                    showDisabledEditText
-                                    onDisabledEditPress={() =>
-                                        router.replace({
-                                            pathname: "/(auth)",
-                                            params: { email: email },
-                                        })
-                                    }
-                                />
-                                <FormInput
-                                    placeholder="Password"
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    inputType="secure-toggleable"
+                                <VerificationCodeInput
+                                    length={6}
+                                    onChangeCode={setVerificationCode}
                                 />
                             </View>
-                            {/* <View style={{ paddingLeft: 8 }} className="mt-2">
-                            <TouchableOpacity>
-                                <Text className="font-semibold text-sm text-dark-primary">
-                                    Forgot your password?
-                                </Text>
-                            </TouchableOpacity>
-                        </View> */}
+
                             <View
                                 style={{
                                     boxShadow: `0px 2px 10px ${COLORS.dark.primary.base}`,
@@ -178,10 +167,10 @@ export default function Login() {
                             >
                                 <TouchableOpacity
                                     className="h-full justify-center items-center"
-                                    onPress={() => onSignInPress()}
+                                    onPress={onVerifyPress}
                                 >
                                     <Text className="text-white font-semibold text-lg">
-                                        Sign In
+                                        Verify
                                     </Text>
                                 </TouchableOpacity>
                             </View>

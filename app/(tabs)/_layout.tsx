@@ -114,7 +114,7 @@ export default function TabLayout() {
                                 iconName,
                             } = perRoute[route.name as keyof typeof perRoute];
                             const titles = {
-                                index: "Home",
+                                index: "Dashboard",
                                 manage: "Manage",
                                 camera: "Camera",
                                 alerts: "Alerts",

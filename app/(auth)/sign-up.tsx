@@ -1,13 +1,16 @@
-import IconTextInput from "@/components/IconTextInput";
+import ErrorBanner from "@/components/ErrorBanner";
+import FormInput from "@/components/FormInput";
 import { COLORS } from "@/constants/theme";
 import { useAppColorScheme } from "@/hooks/use-theme";
+import { validateSignUp } from "@/utils/validation";
 import { useSignUp } from "@clerk/clerk-expo";
-import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useColorScheme } from "nativewind";
+import { useCallback, useState } from "react";
 
 import {
+    ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -20,265 +23,225 @@ export default function SignUpScreen() {
     const { isLoaded, signUp, setActive } = useSignUp();
     const router = useRouter();
 
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [emailAddress, setEmailAddress] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const { email } = useLocalSearchParams<{ email: string }>();
+
+    const { toggleColorScheme } = useColorScheme();
+
+    const [fullName, setFullName] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [confirmPassword, setConfirmPassword] = useState<string>("");
+
     const [formError, setFormError] = useState<string>("");
 
-    const [pendingVerification, setPendingVerification] = useState(false);
-    const [code, setCode] = useState("");
-
+    const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
     const { isLight } = useAppColorScheme();
+
+    useFocusEffect(
+        useCallback(() => {
+            setIsRedirecting(false);
+        }, [])
+    );
 
     const onSignUpPress = async () => {
         if (!isLoaded) return;
 
-        if (password !== confirmPassword) return;
+        setIsRedirecting(true);
+
+        const validationError = await validateSignUp({
+            fullName,
+            password,
+            confirmPassword,
+        });
+
+        if (validationError) {
+            setFormError(validationError);
+            setIsRedirecting(false);
+            return;
+        }
 
         try {
             setFormError("");
+
             await signUp.create({
-                firstName,
-                lastName,
-                emailAddress,
-                password,
+                firstName: fullName.split(" ")[0],
+                lastName: fullName.split(" ").slice(1).join(" "),
+                emailAddress: email,
+                password: password,
             });
 
             await signUp.prepareEmailAddressVerification({
                 strategy: "email_code",
             });
 
-            setPendingVerification(true);
-        } catch (err) {
-            console.error(JSON.stringify(err, null, 2));
-        }
-    };
-
-    const onVerifyPress = async () => {
-        if (!isLoaded) return;
-
-        try {
-            const signUpAttempt = await signUp.attemptEmailAddressVerification({
-                code,
+            router.push({
+                pathname: "/(auth)/verify-email",
+                params: { email },
             });
-            if (signUpAttempt.status === "complete") {
-                await setActive({ session: signUpAttempt.createdSessionId });
-                router.replace("/(tabs)");
-            } else {
-                console.error(JSON.stringify(signUpAttempt, null, 2));
-            }
         } catch (err) {
-            console.error(JSON.stringify(err, null, 2));
+            const clerkErr = err as any;
+
+            if (
+                clerkErr.errors &&
+                Array.isArray(clerkErr.errors) &&
+                clerkErr.errors.length > 0
+            ) {
+                const errorCode = clerkErr.errors[0].code;
+                const errorMessage =
+                    clerkErr.errors[0].longMessage ||
+                    clerkErr.errors[0].message;
+
+                switch (errorCode) {
+                    case "form_password_pwned":
+                        setFormError(
+                            "This password is too weak. Please choose a stronger password."
+                        );
+                        break;
+                    case "form_password_length_too_short":
+                        setFormError(
+                            "Password is too short. Please use at least 8 characters."
+                        );
+                        break;
+                    case "form_password_validation_failed":
+                        setFormError(
+                            "Password doesn't meet the requirements. Please choose a stronger password."
+                        );
+                        break;
+                    case "form_identifier_exists":
+                        setFormError(
+                            "An account with this email already exists. Please sign in instead."
+                        );
+                        break;
+                    default:
+                        setFormError(
+                            errorMessage ||
+                                "An error occurred during sign up. Please try again later."
+                        );
+                }
+            } else {
+                setFormError(
+                    "An error occurred during sign up. Please try again later."
+                );
+                console.error("Sign up error:", JSON.stringify(err, null, 2));
+            }
+
+            setIsRedirecting(false);
         }
     };
 
     return (
-        <View className="flex-1 flex-col h-full">
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={Platform.OS === "ios" ? -40 : 0}
-            >
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 80 }}
-                    className="px-5 pt-16"
-                >
-                    {/* HEADER */}
-                    <View className="flex flex-col items-center">
-                        <View className="overflow-hidden rounded-3xl mb-4">
-                            <View className="w-28 h-28">
-                                <LinearGradient
-                                    style={{
-                                        flex: 1,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
-                                    colors={[
-                                        COLORS.light.primary.base,
-                                        COLORS.light.primary.light,
-                                        COLORS.light.secondary.base,
-                                    ]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                >
-                                    <Feather
-                                        name="lock"
-                                        size={50}
-                                        color={COLORS.light.background}
-                                    />
-                                </LinearGradient>
+        <View className="relative h-full">
+            {isRedirecting ? (
+                <View className="w-full h-full justify-center items-center">
+                    <ActivityIndicator size={"large"} />
+                </View>
+            ) : (
+                <>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        keyboardVerticalOffset={Platform.OS === "ios" ? -40 : 0}
+                        style={{ flex: 1 }}
+                    >
+                        <ScrollView
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingBottom: 80 }}
+                            className="px-5 pt-16"
+                            keyboardShouldPersistTaps="handled"
+                        >
+                            <View className="w-full h-28 items-center mb-8">
+                                <View className="rounded-full overflow-hidden">
+                                    <View className="w-28 h-full items-center justify-center bg-slate-200/80 dark:bg-slate-800/50">
+                                        <MaterialCommunityIcons
+                                            name="shield-lock-outline"
+                                            size={54}
+                                            color={COLORS.dark.primary.base}
+                                        />
+                                    </View>
+                                </View>
                             </View>
-                        </View>
-                        <Text className="text-4xl font-semibold mb-2 text-light-foreground dark:text-dark-foreground">
-                            SecureLock
-                        </Text>
-                        <Text className="text-light-muted-foreground dark:text-dark-muted-foreground">
-                            Welcome back to your smart lock
-                        </Text>
-                    </View>
-                    {/* CARD */}
-                    <View className="bg-light-card dark:bg-dark-card flex flex-col rounded-2xl border-2 border-light-border dark:border-dark-border/50 shadow-2xl mt-8 p-6">
-                        {!pendingVerification ? (
-                            <>
-                                {/* USER DETAILS */}
-                                <IconTextInput
-                                    icon="user"
-                                    label="First name"
-                                    placeholder="Enter your first name"
-                                    value={firstName}
-                                    onChangeText={setFirstName}
+                            <View className="items-center mb-10">
+                                <Text className="text-3xl font-semibold text-light-foreground dark:text-dark-foreground">
+                                    Register
+                                </Text>
+                                <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mt-1">
+                                    Just a few quick steps to get started
+                                </Text>
+                            </View>
+                            <View className="gap-4">
+                                <ErrorBanner message={formError} />
+                                <FormInput
+                                    value={email}
+                                    inputType="email-address"
+                                    isDisabled
+                                    showDisabledEditText
+                                    onDisabledEditPress={() =>
+                                        router.replace({
+                                            pathname: "/(auth)",
+                                            params: { email: email },
+                                        })
+                                    }
                                 />
-                                <IconTextInput
-                                    icon="user"
-                                    label="Last name"
-                                    placeholder="Enter your last name"
-                                    value={lastName}
-                                    onChangeText={setLastName}
+                                <FormInput
+                                    placeholder="Full name"
+                                    value={fullName}
+                                    onChangeText={setFullName}
                                 />
-                                <IconTextInput
-                                    icon="mail"
-                                    label="Email"
-                                    placeholder="Enter your email"
-                                    value={emailAddress}
-                                    onChangeText={setEmailAddress}
-                                    keyboardType="email-address"
-                                />
-                                <IconTextInput
-                                    icon="lock"
-                                    label="Password"
-                                    placeholder="Enter your password"
+                                <FormInput
+                                    placeholder="Password"
                                     value={password}
                                     onChangeText={setPassword}
-                                    secureTextEntry
-                                    toggleSecure
+                                    inputType="secure-toggleable"
                                 />
-                                <IconTextInput
-                                    icon="lock"
-                                    label="Confirm password"
-                                    placeholder="Re-enter your password"
+                                <FormInput
+                                    placeholder="Confirm Password"
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
-                                    secureTextEntry
-                                    toggleSecure
+                                    inputType="secure-toggleable"
                                 />
-                                {confirmPassword.length > 0 &&
-                                    password !== confirmPassword && (
-                                        <Text className="-mt-3 mb-2 text-xs text-red-500">
-                                            Passwords do not match
-                                        </Text>
-                                    )}
-                                {!!formError && (
-                                    <Text className="mb-2 text-xs text-red-500">
-                                        {formError}
+                            </View>
+                            <View
+                                style={{
+                                    boxShadow: `0px 2px 10px ${COLORS.dark.primary.base}`,
+                                }}
+                                className="w-full h-16 bg-dark-primary rounded-xl mt-4"
+                            >
+                                <TouchableOpacity
+                                    className="h-full justify-center items-center"
+                                    onPress={() => onSignUpPress()}
+                                >
+                                    <Text className="text-white font-semibold text-lg">
+                                        Continue
                                     </Text>
-                                )}
-                                {/*TERMS AND PRIVACY POLICY*/}
-                                <View className="mt-2 mb-2">
-                                    <Text className="text-xs text-light-muted-foreground dark:text-dark-muted-foreground">
-                                        By continuing, you agree to our{" "}
-                                        <Text
-                                            className="text-light-primary dark:text-dark-primary text-xs"
-                                            onPress={() =>
-                                                console.log("Terms pressed!")
-                                            }
-                                        >
-                                            Terms
-                                        </Text>{" "}
-                                        and{" "}
-                                        <Text
-                                            className="text-light-primary dark:text-dark-primary text-xs"
-                                            onPress={() =>
-                                                console.log(
-                                                    "Privacy policy pressed!"
-                                                )
-                                            }
-                                        >
-                                            Privacy Policy
-                                        </Text>
-                                    </Text>
-                                </View>
-                                {/* SIGN UP BUTTON */}
-                                <View className="rounded-lg overflow-hidden">
-                                    <LinearGradient
-                                        colors={[
-                                            COLORS.light.primary.base,
-                                            "#2563EB",
-                                            COLORS.light.secondary.base,
-                                        ]}
-                                        start={{ x: 0, y: 1 }}
-                                        end={{ x: 1, y: 1 }}
-                                    >
-                                        <TouchableOpacity
-                                            className="w-full h-12 flex justify-center items-center"
-                                            onPress={onSignUpPress}
-                                        >
-                                            <Text className="font-medium text-light-primary-foreground">
-                                                Sign Up
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </LinearGradient>
-                                </View>
-                                {/* DON'T HAVE AN ACCOUNT? */}
-                                <View className="pt-4 flex-row justify-center items-center">
-                                    <Text className="text-light-muted-foreground dark:text-dark-muted-foreground mr-2">
-                                        Already have an account?
-                                    </Text>
-                                    <TouchableOpacity
-                                        onPress={() =>
-                                            router.navigate("/(auth)/login")
-                                        }
-                                    >
-                                        <Text className="text-light-primary dark:text-dark-primary font-medium">
-                                            Sign In
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </>
-                        ) : (
-                            <>
-                                {/* VERIFICATION CODE */}
-                                <Text className="text-sm text-light-muted-foreground dark:text-dark-muted-foreground mb-2">
-                                    Enter the verification code sent to your
-                                    email
-                                </Text>
-                                <IconTextInput
-                                    icon="key"
-                                    label="Verification Code"
-                                    placeholder="123456"
-                                    value={code}
-                                    onChangeText={setCode}
-                                    keyboardType="number-pad"
-                                />
-                                <View className="rounded-lg overflow-hidden mt-2">
-                                    <LinearGradient
-                                        colors={[
-                                            COLORS.light.primary.base,
-                                            "#2563EB",
-                                            COLORS.light.secondary.base,
-                                        ]}
-                                        start={{ x: 0, y: 1 }}
-                                        end={{ x: 1, y: 1 }}
-                                    >
-                                        <TouchableOpacity
-                                            className="w-full h-12 flex justify-center items-center"
-                                            onPress={onVerifyPress}
-                                        >
-                                            <Text className="font-medium text-light-primary-foreground">
-                                                Verify
-                                            </Text>
-                                        </TouchableOpacity>
-                                    </LinearGradient>
-                                </View>
-                            </>
-                        )}
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    </KeyboardAvoidingView>
+                    <View
+                        style={{
+                            position: "absolute",
+                            bottom: 20,
+                            left: "50%",
+                            transform: [{ translateX: "-50%" }],
+                        }}
+                        className="flex-row justify-center items-center gap-1"
+                    >
+                        <Ionicons
+                            name={
+                                isLight
+                                    ? "shield-checkmark-outline"
+                                    : "shield-checkmark"
+                            }
+                            size={14}
+                            color={
+                                COLORS[isLight ? "light" : "dark"].muted
+                                    .foreground
+                            }
+                        />
+                        <Text className="text-xs text-light-muted-foreground dark:text-dark-muted-foreground">
+                            Protected by end-to-end encryption
+                        </Text>
                     </View>
-                    <Text className="text-xs text-light-muted-foreground dark:text-dark-muted-foreground text-center mt-6">
-                        Protected by end-to-end encryption
-                    </Text>
-                </ScrollView>
-            </KeyboardAvoidingView>
+                </>
+            )}
         </View>
     );
 }

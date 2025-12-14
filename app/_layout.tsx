@@ -1,8 +1,9 @@
 import { useAppColorScheme } from "@/hooks/use-theme";
-import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
-import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { Stack } from "expo-router";
+import ClerkAndConvexProvider from "@/providers/ClerkAndConvexProvider";
+import { useAuth } from "@clerk/clerk-expo";
+import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
@@ -12,14 +13,32 @@ if (!publishableKey) {
     );
 }
 
+function InitialLayout() {
+    const { isLoaded, isSignedIn } = useAuth();
+    const segments = useSegments();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        const inTabsGroup = segments[0] === "(tabs)";
+
+        if (isSignedIn && !inTabsGroup) {
+            router.replace("/(tabs)");
+        } else if (!isSignedIn && inTabsGroup) {
+            router.replace("/(auth)");
+        }
+    }, [isSignedIn, isLoaded]);
+    return <Slot screenOptions={{ headerShown: false }} />;
+}
+
 export default function RootLayout() {
     const { isLight } = useAppColorScheme();
+
     return (
-        <ClerkProvider tokenCache={tokenCache}>
-            <ClerkLoaded>
-                <StatusBar style={isLight ? "dark" : "light"} />
-                <Stack screenOptions={{ headerShown: false }} />
-            </ClerkLoaded>
-        </ClerkProvider>
+        <ClerkAndConvexProvider>
+            <StatusBar style={isLight ? "dark" : "light"} />
+            <InitialLayout />
+        </ClerkAndConvexProvider>
     );
 }
